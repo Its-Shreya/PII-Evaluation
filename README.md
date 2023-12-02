@@ -51,19 +51,25 @@ Before running the api, ensure that all required libraries are installed in the 
 In VS Code, open the integrated terminal by pressing Ctrl + (backtick) or go to View -> Terminal. Open Terminal in VS Code and then select the Git Bash option. 
 
 Type the following commands in the terminal screen.
+
 pip install Flask 
+
 pip install spacy
+
 pip install nltk
+
 python -m spacy download en_core_web_sm
 
 NLTK requires additional data for various tasks such as tokenization, stemming, etc. To download this data, you can use the NLTK downloader. In your terminal, run a Python interpreter: Type 'python' in the bash console.
 
 import nltk
+
 nltk.download()
 
 Enter the bash command "python app.py" to run the file. Wait for a while till a development server on http://127.0.0.1:5000 is created. Close the python environment and go to bash again. Send in a POST request using the curl command as: 
 
 curl -X POST -H "Content-Type: application/json" -d '{"paragraph": "Input text here."}' http://127.0.0.1:5000/analyze-pii
+
 
 Replace the input text field with your required input. The output containing the detected PII from the text would be displayed as output in the terminal screen.
 
@@ -77,8 +83,11 @@ $response = Invoke-RestMethod -Uri $url -Method Post -Body $jsonPayload -Headers
 $response
 
 Replace "Your text here." with the actual text you want to analyze.
+
 $url: The URL of your Flask API endpoint.
+
 $jsonPayload: The JSON payload to be sent in the POST request.
+
 Invoke-RestMethod: A PowerShell cmdlet for making HTTP requests.
 
 Save this PowerShell script in a file with a .ps1 extension and run it in the PowerShell environment. This script should send a POST request to the Flask API and display the API response in the PowerShell console.
