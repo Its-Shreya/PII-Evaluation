@@ -8,6 +8,18 @@ import nltk
 import spacy
 # SpaCy for advanced natural language processing tasks
 
+# Import CountVectorizer to convert a collection of text data into a bag-of-words model
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Import Multinomial Naive Bayes classifier for text classification
+from sklearn.naive_bayes import MultinomialNB
+
+# Import make_pipeline to simplify the creation of a pipeline of processing steps
+from sklearn.pipeline import make_pipeline
+
+# Import joblib for saving and loading the trained model
+import joblib
+
 # Download NLTK data required for tokenization and POS tagging
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -79,13 +91,68 @@ def analyze_pii(text):
 
         return filtered_proper_nouns
 
+    # Function to load names from a text file
+    def load_names(file_path):
+    # Open the file and read names, stripping whitespace
+        with open(file_path, 'r') as file:
+            names = [line.strip() for line in file]
+        return names
+
+    # Function to train a name identification model
+    def train_model(names):
+        # Creating a dataset with names and non-names
+        data = names + ['noname'] * len(names)
+        labels = ['name'] * len(names) + ['noname'] * len(names)
+
+        # Creating a pipeline with a bag-of-words model and Naive Bayes classifier
+        model = make_pipeline(CountVectorizer(), MultinomialNB())
+
+        # Training the model
+        model.fit(data, labels)
+
+        return model
+
+    # Function to identify names from a paragraph
+    def identify_names(model, input_paragraph):
+        # Tokenize the paragraph into words
+        input_words = re.findall(r'\b\w+\b', input_paragraph)
+
+        # Obtain probabilities for each class using the trained model
+        probabilities = model.predict_proba(input_words)
+
+        # Assuming 'name' is the first class, filter words based on the probability threshold
+        identified_names = [word for word, prob in zip(input_words, probabilities[:, 0]) if prob > 0.5]
+
+        return identified_names
+    
     # Apply the defined functions to extract PII from the text
     numeric_sequences = find_numeric_sequences(text)
     alphanumeric_words = find_alphanumeric_words_with_letters_and_digits(text)
     filtered_proper_nouns = extract_cleaned_proper_nouns(text)
+    # Identify names from the paragraph
+    
+    # File path to the text file containing names
+    file_path = 'Names.txt'
+
+    # Load names from the text file
+    names = load_names(file_path)
+
+    # Train the name identification model
+    name_model = train_model(names)
+
+    # Save the trained model for future use
+    joblib.dump(name_model, 'name_model.joblib')
+
+    # Accept user input for a paragraph
+    user_input = text
+
+    # Identify names from the paragraph
+    output_names = identify_names(name_model, user_input)
+
+
 
     # Combine all detected PII into a set to avoid repetitions and convert it back to a list
-    detected_pii = list(set(numeric_sequences + alphanumeric_words + filtered_proper_nouns))
+    detected_pii = list(set(numeric_sequences + alphanumeric_words + filtered_proper_nouns + output_names))
     return detected_pii
 
 # Define a route for the '/analyze-pii' endpoint that accepts POST requests
